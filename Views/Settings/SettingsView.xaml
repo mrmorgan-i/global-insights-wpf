@@ -1,0 +1,372 @@
+<Window x:Class="Global_Insights_Dashboard.Views.Settings.SettingsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:converters="clr-namespace:Global_Insights_Dashboard.Utils.Converters"
+        Title="Settings" 
+        Height="600" 
+        Width="800"
+        MinHeight="500"
+        MinWidth="700"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="14"
+        FontFamily="{DynamicResource MaterialDesignFont}">
+
+    <Window.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        
+        <!-- Section Header Style -->
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}" />
+        </Style>
+
+        <!-- Setting Item Style -->
+        <Style x:Key="SettingItemStyle" TargetType="Grid">
+            <Setter Property="Margin" Value="0,8,0,8" />
+        </Style>
+
+        <!-- Setting Label Style -->
+        <Style x:Key="SettingLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,16,0" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <materialDesign:Card Grid.Row="0" 
+                           UniformCornerRadius="0" 
+                           materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                           Background="{DynamicResource PrimaryHueMidBrush}"
+                           Padding="24,16">
+            <StackPanel Orientation="Horizontal">
+                <materialDesign:PackIcon Kind="Settings" 
+                                       Width="28" Height="28" 
+                                       Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                                       VerticalAlignment="Center" />
+                <TextBlock Text="Settings" 
+                         FontSize="20" FontWeight="Medium"
+                         Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                         VerticalAlignment="Center" 
+                         Margin="12,0,0,0" />
+            </StackPanel>
+        </materialDesign:Card>
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24">
+            <StackPanel>
+                
+                <!-- Appearance Section -->
+                <materialDesign:Card Padding="20" Margin="0,0,0,16" materialDesign:ElevationAssist.Elevation="Dp2">
+                    <StackPanel>
+                        <TextBlock Text="🎨 Appearance" Style="{StaticResource SectionHeaderStyle}" />
+
+                        <!-- Theme Setting -->
+                        <Grid Style="{StaticResource SettingItemStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Theme" Style="{StaticResource SettingLabelStyle}" />
+                                <TextBlock Text="Choose between light and dark theme" 
+                                         FontSize="12" Opacity="0.7" />
+                            </StackPanel>
+
+                            <ToggleButton Grid.Column="1" 
+                                        Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                        IsChecked="{Binding IsDarkMode}"
+                                        VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Separator Margin="0,16" />
+
+                        <!-- Primary Color Setting -->
+                        <Grid Style="{StaticResource SettingItemStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Primary Color" Style="{StaticResource SettingLabelStyle}" />
+                                <TextBlock Text="Choose the main accent color for the application" 
+                                         FontSize="12" Opacity="0.7" />
+                            </StackPanel>
+
+                            <ComboBox Grid.Column="1" 
+                                    SelectedValue="{Binding SelectedPrimaryColor}"
+                                    SelectedValuePath="Key"
+                                    DisplayMemberPath="Value"
+                                    ItemsSource="{Binding AvailableColors}"
+                                    Style="{StaticResource MaterialDesignComboBox}"
+                                    MinWidth="150" />
+                        </Grid>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <!-- API Configuration Section -->
+                <materialDesign:Card Padding="20" Margin="0,0,0,16" materialDesign:ElevationAssist.Elevation="Dp2">
+                    <StackPanel>
+                        <TextBlock Text="🔑 API Configuration" Style="{StaticResource SectionHeaderStyle}" />
+
+                        <!-- Weather API -->
+                        <Grid Style="{StaticResource SettingItemStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Weather API Key" Style="{StaticResource SettingLabelStyle}" />
+                                <TextBlock Text="OpenWeatherMap" FontSize="12" Opacity="0.7" />
+                            </StackPanel>
+
+                            <PasswordBox Grid.Column="1" 
+                                       x:Name="WeatherApiKeyBox"
+                                       Style="{StaticResource MaterialDesignPasswordBox}"
+                                       materialDesign:HintAssist.Hint="Enter API key"
+                                       Margin="0,0,8,0" />
+
+                            <Button Grid.Column="2"
+                                  Command="{Binding SaveWeatherApiKeyCommand}"
+                                  CommandParameter="{Binding ElementName=WeatherApiKeyBox}"
+                                  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                  Content="Save" />
+                        </Grid>
+
+                        <!-- News API -->
+                        <Grid Style="{StaticResource SettingItemStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="News API Key" Style="{StaticResource SettingLabelStyle}" />
+                                <TextBlock Text="NewsAPI.org" FontSize="12" Opacity="0.7" />
+                            </StackPanel>
+
+                            <PasswordBox Grid.Column="1" 
+                                       x:Name="NewsApiKeyBox"
+                                       Style="{StaticResource MaterialDesignPasswordBox}"
+                                       materialDesign:HintAssist.Hint="Enter API key"
+                                       Margin="0,0,8,0" />
+
+                            <Button Grid.Column="2"
+                                  Command="{Binding SaveNewsApiKeyCommand}"
+                                  CommandParameter="{Binding ElementName=NewsApiKeyBox}"
+                                  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                  Content="Save" />
+                        </Grid>
+
+                        <!-- Finance API -->
+                        <Grid Style="{StaticResource SettingItemStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Finance API Key" Style="{StaticResource SettingLabelStyle}" />
+                                <TextBlock Text="Polygon.io" FontSize="12" Opacity="0.7" />
+                            </StackPanel>
+
+                            <PasswordBox Grid.Column="1" 
+                                       x:Name="FinanceApiKeyBox"
+                                       Style="{StaticResource MaterialDesignPasswordBox}"
+                                       materialDesign:HintAssist.Hint="Enter API key"
+                                       Margin="0,0,8,0" />
+
+                            <Button Grid.Column="2"
+                                  Command="{Binding SaveFinanceApiKeyCommand}"
+                                  CommandParameter="{Binding ElementName=FinanceApiKeyBox}"
+                                  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                  Content="Save" />
+                        </Grid>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <!-- Application Preferences Section -->
+                <materialDesign:Card Padding="20" Margin="0,0,0,16" materialDesign:ElevationAssist.Elevation="Dp2">
+                    <StackPanel>
+                        <TextBlock Text="⚙️ Application Preferences" Style="{StaticResource SectionHeaderStyle}" />
+
+                        <!-- Default Service -->
+                        <Grid Style="{StaticResource SettingItemStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Default Service" Style="{StaticResource SettingLabelStyle}" />
+                                <TextBlock Text="Service to open when application starts" 
+                                         FontSize="12" Opacity="0.7" />
+                            </StackPanel>
+
+                            <ComboBox Grid.Column="1" 
+                                    SelectedValue="{Binding DefaultService}"
+                                    ItemsSource="{Binding AvailableServices}"
+                                    Style="{StaticResource MaterialDesignComboBox}"
+                                    MinWidth="150" />
+                        </Grid>
+
+                        <!-- Default Location -->
+                        <Grid Style="{StaticResource SettingItemStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Default Location" Style="{StaticResource SettingLabelStyle}" />
+                                <TextBlock Text="Default city for weather information" 
+                                         FontSize="12" Opacity="0.7" />
+                            </StackPanel>
+
+                            <TextBox Grid.Column="1" 
+                                   Text="{Binding DefaultCity}"
+                                   Style="{StaticResource MaterialDesignTextBox}"
+                                   materialDesign:HintAssist.Hint="City, Country"
+                                   MinWidth="200" />
+                        </Grid>
+
+                        <!-- Auto-refresh -->
+                        <Grid Style="{StaticResource SettingItemStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Auto-refresh" Style="{StaticResource SettingLabelStyle}" />
+                                <TextBlock Text="Automatically refresh data at regular intervals" 
+                                         FontSize="12" Opacity="0.7" />
+                            </StackPanel>
+
+                            <ToggleButton Grid.Column="1" 
+                                        Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                        IsChecked="{Binding IsAutoRefreshEnabled}"
+                                        VerticalAlignment="Center" />
+                        </Grid>
+
+                        <!-- Refresh Interval -->
+                        <Grid Style="{StaticResource SettingItemStyle}"
+                              Visibility="{Binding IsAutoRefreshEnabled, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Refresh Interval" Style="{StaticResource SettingLabelStyle}" />
+                                <TextBlock Text="How often to refresh data (in minutes)" 
+                                         FontSize="12" Opacity="0.7" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Slider Value="{Binding RefreshIntervalMinutes}"
+                                      Minimum="1" Maximum="60"
+                                      Width="150"
+                                      VerticalAlignment="Center"
+                                      Margin="0,0,8,0" />
+                                <TextBlock Text="{Binding RefreshIntervalMinutes, StringFormat={}{0} min}"
+                                         VerticalAlignment="Center"
+                                         MinWidth="50" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <!-- Cache & Storage Section -->
+                <materialDesign:Card Padding="20" Margin="0,0,0,16" materialDesign:ElevationAssist.Elevation="Dp2">
+                    <StackPanel>
+                        <TextBlock Text="💾 Cache &amp; Storage" Style="{StaticResource SectionHeaderStyle}" />
+
+                        <!-- Enable Offline Mode -->
+                        <Grid Style="{StaticResource SettingItemStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Enable Offline Mode" Style="{StaticResource SettingLabelStyle}" />
+                                <TextBlock Text="Cache data for offline access when internet is unavailable" 
+                                         FontSize="12" Opacity="0.7" />
+                            </StackPanel>
+
+                            <ToggleButton Grid.Column="1" 
+                                        Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                        IsChecked="{Binding IsOfflineModeEnabled}"
+                                        VerticalAlignment="Center" />
+                        </Grid>
+
+                        <!-- Clear Cache -->
+                        <Grid Style="{StaticResource SettingItemStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Clear Cache" Style="{StaticResource SettingLabelStyle}" />
+                                <TextBlock Text="Remove all cached data to free up space" 
+                                         FontSize="12" Opacity="0.7" />
+                            </StackPanel>
+
+                            <Button Grid.Column="1"
+                                  Command="{Binding ClearCacheCommand}"
+                                  Style="{StaticResource MaterialDesignOutlinedButton}"
+                                  Content="Clear" />
+                        </Grid>
+                    </StackPanel>
+                </materialDesign:Card>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <materialDesign:Card Grid.Row="2" 
+                           UniformCornerRadius="0" 
+                           materialDesign:ShadowAssist.ShadowDepth="Depth1"
+                           Padding="24,16">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Command="{Binding ResetToDefaultsCommand}"
+                      Style="{StaticResource MaterialDesignOutlinedButton}"
+                      Content="Reset to Defaults"
+                      Margin="0,0,16,0" />
+                
+                <Button Command="{Binding SaveAllSettingsCommand}"
+                      Style="{StaticResource MaterialDesignRaisedButton}"
+                      Content="Save All Changes"
+                      IsDefault="True"
+                      Margin="0,0,16,0" />
+                
+                <Button Command="{Binding CloseCommand}"
+                      Style="{StaticResource MaterialDesignOutlinedButton}"
+                      Content="Close"
+                      IsCancel="True" />
+            </StackPanel>
+        </materialDesign:Card>
+
+    </Grid>
+</Window>

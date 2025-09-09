@@ -1,0 +1,19 @@
+# Build outputs
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Configuration with API keys
+appsettings.json
+
+# OS files
+Thumbs.db
+.DS_Store

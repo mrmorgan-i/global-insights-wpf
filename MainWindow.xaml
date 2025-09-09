@@ -1,0 +1,277 @@
+<Window x:Class="Global_Insights_Dashboard.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Global_Insights_Dashboard"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Global Insights Dashboard" 
+        Height="900" 
+        Width="1400"
+        MinHeight="700"
+        MinWidth="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="14"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        FontFamily="{DynamicResource MaterialDesignFont}">
+
+    <Window.Resources>
+        <!-- Navigation Button Style -->
+        <Style x:Key="NavigationButtonStyle" TargetType="Button" BasedOn="{StaticResource MaterialDesignFlatButton}">
+            <Setter Property="Height" Value="48" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Margin" Value="0,2" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource MaterialDesignSelection}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Service Icon Style -->
+        <Style x:Key="ServiceIconStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,12,0" />
+        </Style>
+    </Window.Resources>
+
+    <materialDesign:DialogHost Identifier="MainDialogHost">
+        <Grid>
+            <Grid.RowDefinitions>
+                <!-- Header -->
+                <RowDefinition Height="64" />
+                <!-- Content -->
+                <RowDefinition Height="*" />
+                <!-- Status Bar -->
+                <RowDefinition Height="32" />
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <materialDesign:Card Grid.Row="0" 
+                               UniformCornerRadius="0" 
+                               materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                               Background="{DynamicResource PrimaryHueMidBrush}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Menu Button -->
+                    <Button Grid.Column="0"
+                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                            Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                            Command="{Binding ToggleNavigationCommand}"
+                            Margin="8"
+                            ToolTip="Open Navigation Menu">
+                        <materialDesign:PackIcon Kind="Menu" Width="24" Height="24" />
+                    </Button>
+
+                    <!-- Application Title -->
+                    <StackPanel Grid.Column="1" 
+                              Orientation="Horizontal" 
+                              VerticalAlignment="Center"
+                              Margin="16,0">
+                        <TextBlock Text="{Binding ApplicationTitle}"
+                                 FontSize="20"
+                                 FontWeight="Medium"
+                                 Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                                 VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding CurrentServiceName, StringFormat=' - {0}'}"
+                                 FontSize="16"
+                                 FontWeight="Normal"
+                                 Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                                 Opacity="0.8"
+                                 VerticalAlignment="Center"
+                                 Margin="8,0,0,0" />
+                    </StackPanel>
+
+                    <!-- Refresh Button -->
+                    <Button Grid.Column="2"
+                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                            Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                            Command="{Binding RefreshCurrentServiceCommand}"
+                            Margin="4"
+                            ToolTip="Refresh Current Service">
+                        <materialDesign:PackIcon Kind="Refresh" Width="20" Height="20" />
+                    </Button>
+
+                    <!-- Theme Toggle Button -->
+                    <Button Grid.Column="3"
+                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                            Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                            Command="{Binding ToggleThemeCommand}"
+                            Margin="4"
+                            ToolTip="Toggle Light/Dark Theme">
+                        <materialDesign:PackIcon>
+                            <materialDesign:PackIcon.Style>
+                                <Style TargetType="materialDesign:PackIcon">
+                                    <Setter Property="Kind" Value="LightbulbOutline" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDarkMode}" Value="True">
+                                            <Setter Property="Kind" Value="Lightbulb" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </materialDesign:PackIcon.Style>
+                        </materialDesign:PackIcon>
+                    </Button>
+
+                    <!-- Settings Button -->
+                    <Button Grid.Column="4"
+                            Style="{StaticResource MaterialDesignIconForegroundButton}"
+                            Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                            Command="{Binding OpenSettingsCommand}"
+                            Margin="4,4,16,4"
+                            ToolTip="Open Settings">
+                        <materialDesign:PackIcon Kind="Settings" Width="20" Height="20" />
+                    </Button>
+                </Grid>
+            </materialDesign:Card>
+
+            <!-- Main Content Area -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <!-- Navigation Panel -->
+                    <ColumnDefinition Width="Auto" />
+                    <!-- Content -->
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Navigation Drawer -->
+                <materialDesign:Card Grid.Column="0"
+                                   materialDesign:ShadowAssist.ShadowDepth="Depth3"
+                                   Margin="0,0,4,0"
+                                   Visibility="{Binding IsNavigationOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Width="280">
+                        <StackPanel Margin="0,16">
+                            <!-- Navigation Header -->
+                            <TextBlock Text="Services"
+                                     FontSize="16"
+                                     FontWeight="Medium"
+                                     Margin="16,0,16,16"
+                                     Foreground="{DynamicResource MaterialDesignBodyLight}" />
+
+                            <!-- Service Menu Items -->
+                            <ItemsControl ItemsSource="{Binding Services}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{Binding DataContext.NavigateToServiceCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                              CommandParameter="{Binding Name}">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource NavigationButtonStyle}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                            <Setter Property="Background" Value="{DynamicResource PrimaryHueLightBrush}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Icon}" Style="{StaticResource ServiceIconStyle}" />
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding DisplayName}"
+                                                             FontWeight="Medium"
+                                                             FontSize="14" />
+                                                    <TextBlock Text="{Binding Description}"
+                                                             FontSize="12"
+                                                             Opacity="0.7"
+                                                             TextWrapping="Wrap" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <!-- Navigation Footer -->
+                            <Separator Margin="16,24,16,16" />
+                            
+                            <Button Style="{StaticResource NavigationButtonStyle}"
+                                  Command="{Binding ShowAboutCommand}">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Information" 
+                                                           Width="20" Height="20" 
+                                                           VerticalAlignment="Center" 
+                                                           Margin="0,0,12,0" />
+                                    <TextBlock Text="About" FontWeight="Medium" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </ScrollViewer>
+                </materialDesign:Card>
+
+                <!-- Content Area -->
+                <ContentControl Grid.Column="1" 
+                              x:Name="ContentArea"
+                              Margin="8">
+                    <!-- This will be populated by navigation service -->
+                    <TextBlock Text="Welcome to Global Insights Dashboard!"
+                             FontSize="24"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             Opacity="0.6" />
+                </ContentControl>
+            </Grid>
+
+            <!-- Status Bar -->
+            <materialDesign:Card Grid.Row="2" 
+                               UniformCornerRadius="0"
+                               Background="{DynamicResource MaterialDesignCardBackground}"
+                               materialDesign:ShadowAssist.ShadowDepth="Depth1">
+    <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Status Text -->
+                    <TextBlock Grid.Column="0"
+                             Text="{Binding StatusBarText}"
+                             VerticalAlignment="Center"
+                             Margin="16,6"
+                             FontSize="12" />
+
+                    <!-- Current Time -->
+                    <TextBlock Grid.Column="1"
+                             Text="{Binding CurrentTime}"
+                             VerticalAlignment="Center"
+                             Margin="16,6"
+                             FontSize="12"
+                             FontFamily="Consolas" />
+                </Grid>
+            </materialDesign:Card>
+
+            <!-- Loading Overlay -->
+            <Grid Grid.RowSpan="3" 
+                  Background="{DynamicResource MaterialDesignPaper}"
+                  Opacity="0.8"
+                  Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ProgressBar Style="{StaticResource LoadingSpinnerStyle}" />
+                    <TextBlock Text="{Binding StatusMessage}"
+                             Margin="0,16,0,0"
+                             HorizontalAlignment="Center"
+                             FontSize="14" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Error Notification -->
+            <materialDesign:Snackbar Grid.RowSpan="3"
+                                   x:Name="ErrorSnackbar"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Bottom" />
+    </Grid>
+    </materialDesign:DialogHost>
+</Window>

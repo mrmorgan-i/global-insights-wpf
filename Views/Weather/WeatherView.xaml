@@ -1,0 +1,350 @@
+<UserControl x:Class="Global_Insights_Dashboard.Views.Weather.WeatherView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:Global_Insights_Dashboard.Views.Weather"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             Background="{DynamicResource MaterialDesignPaper}">
+
+    <UserControl.Resources>
+        <!-- Current Weather Card Style -->
+        <Style x:Key="CurrentWeatherCardStyle" TargetType="materialDesign:Card" BasedOn="{StaticResource DashboardCardStyle}">
+            <Setter Property="Padding" Value="24" />
+            <Setter Property="Margin" Value="0,0,16,16" />
+            <Setter Property="MinHeight" Value="300" />
+        </Style>
+
+        <!-- Forecast Card Style -->
+        <Style x:Key="ForecastCardStyle" TargetType="materialDesign:Card" BasedOn="{StaticResource DashboardCardStyle}">
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="4" />
+            <Setter Property="Width" Value="140" />
+            <Setter Property="Height" Value="180" />
+        </Style>
+
+        <!-- Popular City Button Style -->
+        <Style x:Key="PopularCityButtonStyle" TargetType="Button" BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+            <Setter Property="Margin" Value="4" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
+        <StackPanel>
+            <!-- Search Section -->
+            <materialDesign:Card Style="{StaticResource DashboardCardStyle}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="🌤️ Weather Search" Style="{StaticResource ServiceHeaderStyle}" />
+                    
+                    <!-- Search Input -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0"
+                               Text="{Binding CityInput, UpdateSourceTrigger=PropertyChanged}"
+                               Style="{StaticResource SearchBoxStyle}"
+                               materialDesign:HintAssist.Hint="City name"
+                               Margin="0,0,8,0" />
+
+                        <TextBox Grid.Column="1"
+                               Text="{Binding CountryInput, UpdateSourceTrigger=PropertyChanged}"
+                               Style="{StaticResource SearchBoxStyle}"
+                               materialDesign:HintAssist.Hint="Country (optional)"
+                               Margin="0,0,8,0" />
+
+                        <Button Grid.Column="2"
+                              Style="{StaticResource MaterialDesignRaisedButton}"
+                              Command="{Binding SearchWeatherCommand}"
+                              IsDefault="True"
+                              Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Magnify" Width="16" Height="16" Margin="0,0,8,0" />
+                                <TextBlock Text="Search" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Grid.Column="3"
+                              Style="{StaticResource MaterialDesignOutlinedButton}"
+                              Command="{Binding UseCurrentLocationCommand}"
+                              ToolTip="Use Current Location">
+                            <materialDesign:PackIcon Kind="MapMarker" Width="16" Height="16" />
+                        </Button>
+                    </Grid>
+
+                    <!-- Popular Cities -->
+                    <TextBlock Text="Popular Cities:" Margin="0,0,0,8" FontWeight="Medium" />
+                    <ItemsControl ItemsSource="{Binding PopularCities}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource PopularCityButtonStyle}"
+                                      Content="{Binding}"
+                                      Command="{Binding DataContext.SearchPopularCityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <!-- Weather Content -->
+            <Grid Visibility="{Binding HasWeatherData, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Current Weather -->
+                <materialDesign:Card Grid.Row="0" Style="{StaticResource CurrentWeatherCardStyle}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Weather Info -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="{Binding CurrentWeather.Name, StringFormat={}📍 {0}}"
+                                     FontSize="18"
+                                     FontWeight="Medium"
+                                     Margin="0,0,0,8" />
+
+                            <TextBlock Text="{Binding CurrentWeather.TemperatureDisplay}"
+                                     Style="{StaticResource LargeTemperatureStyle}"
+                                     Margin="0,0,0,8" />
+
+                            <TextBlock Text="{Binding CurrentWeather.WeatherDescription}"
+                                     FontSize="16"
+                                     Opacity="0.8"
+                                     Margin="0,0,0,16" />
+
+                            <TextBlock Text="{Binding CurrentWeather.FeelsLikeDisplay}"
+                                     FontSize="14"
+                                     Opacity="0.7"
+                                     Margin="0,0,0,8" />
+
+                            <!-- Weather Details Grid -->
+                            <Grid Margin="0,16,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <!-- Humidity -->
+                                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,8">
+                                    <TextBlock Text="Humidity" Style="{StaticResource DataLabelStyle}" />
+                                    <TextBlock Text="{Binding CurrentWeather.Main.Humidity, StringFormat={}{0}%}" Style="{StaticResource DataValueStyle}" />
+                                </StackPanel>
+
+                                <!-- Pressure -->
+                                <StackPanel Grid.Row="0" Grid.Column="1" Margin="8,0,0,8">
+                                    <TextBlock Text="Pressure" Style="{StaticResource DataLabelStyle}" />
+                                    <TextBlock Text="{Binding CurrentWeather.Main.Pressure, StringFormat={}{0} hPa}" Style="{StaticResource DataValueStyle}" />
+                                </StackPanel>
+
+                                <!-- Wind Speed -->
+                                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,8,8">
+                                    <TextBlock Text="Wind Speed" Style="{StaticResource DataLabelStyle}" />
+                                    <TextBlock Text="{Binding CurrentWeather.Wind.Speed, StringFormat={}{0} m/s}" Style="{StaticResource DataValueStyle}" />
+                                </StackPanel>
+
+                                <!-- Wind Direction -->
+                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="8,0,0,8">
+                                    <TextBlock Text="Wind Direction" Style="{StaticResource DataLabelStyle}" />
+                                    <TextBlock Text="{Binding CurrentWeather.Wind.Direction}" Style="{StaticResource DataValueStyle}" />
+                                </StackPanel>
+
+                                <!-- Visibility -->
+                                <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,8,8">
+                                    <TextBlock Text="Visibility" Style="{StaticResource DataLabelStyle}" />
+                                    <TextBlock Text="{Binding CurrentWeather.Visibility, StringFormat={}{0} m}" Style="{StaticResource DataValueStyle}" />
+                                </StackPanel>
+
+                                <!-- Cloud Coverage -->
+                                <StackPanel Grid.Row="2" Grid.Column="1" Margin="8,0,0,8">
+                                    <TextBlock Text="Cloud Coverage" Style="{StaticResource DataLabelStyle}" />
+                                    <TextBlock Text="{Binding CurrentWeather.Clouds.Coverage, StringFormat={}{0}%}" Style="{StaticResource DataValueStyle}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Weather Icon/Symbol -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <TextBlock Text="☀️" FontSize="64" HorizontalAlignment="Center" Margin="0,0,0,16">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CurrentWeather.Weather[0].Main}" Value="Clear">
+                                                <Setter Property="Text" Value="☀️" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding CurrentWeather.Weather[0].Main}" Value="Clouds">
+                                                <Setter Property="Text" Value="☁️" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding CurrentWeather.Weather[0].Main}" Value="Rain">
+                                                <Setter Property="Text" Value="🌧️" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding CurrentWeather.Weather[0].Main}" Value="Snow">
+                                                <Setter Property="Text" Value="❄️" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding CurrentWeather.Weather[0].Main}" Value="Thunderstorm">
+                                                <Setter Property="Text" Value="⛈️" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding CurrentWeather.Weather[0].Main}" Value="Drizzle">
+                                                <Setter Property="Text" Value="🌦️" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding CurrentWeather.Weather[0].Main}" Value="Mist">
+                                                <Setter Property="Text" Value="🌫️" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <TextBlock Text="{Binding LastUpdated, StringFormat={}Updated: {0:HH:mm}}"
+                                     FontSize="12"
+                                     Opacity="0.6"
+                                     HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </materialDesign:Card>
+
+                <!-- 5-Day Forecast -->
+                <materialDesign:Card Grid.Row="1" Style="{StaticResource DashboardCardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="📅 5-Day Forecast" Style="{StaticResource ServiceHeaderStyle}" />
+                        
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding DailyForecasts}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <materialDesign:Card Style="{StaticResource ForecastCardStyle}">
+                                            <StackPanel HorizontalAlignment="Center">
+                                                <TextBlock Text="{Binding DayName}"
+                                                         FontWeight="Medium"
+                                                         HorizontalAlignment="Center"
+                                                         Margin="0,0,0,4" />
+
+                                                <TextBlock Text="{Binding DateDisplay}"
+                                                         FontSize="12"
+                                                         Opacity="0.7"
+                                                         HorizontalAlignment="Center"
+                                                         Margin="0,0,0,8" />
+
+                                                <TextBlock Text="🌤️" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,8">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding WeatherCondition}" Value="Clear">
+                                                                    <Setter Property="Text" Value="☀️" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding WeatherCondition}" Value="Clouds">
+                                                                    <Setter Property="Text" Value="☁️" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding WeatherCondition}" Value="Rain">
+                                                                    <Setter Property="Text" Value="🌧️" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding WeatherCondition}" Value="Snow">
+                                                                    <Setter Property="Text" Value="❄️" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+
+                                                <TextBlock Text="{Binding TemperatureRange}"
+                                                         FontWeight="Medium"
+                                                         HorizontalAlignment="Center"
+                                                         Margin="0,0,0,4" />
+
+                                                <TextBlock Text="{Binding WeatherDescription}"
+                                                         FontSize="11"
+                                                         Opacity="0.7"
+                                                         HorizontalAlignment="Center"
+                                                         TextAlignment="Center"
+                                                         TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </materialDesign:Card>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </StackPanel>
+                </materialDesign:Card>
+            </Grid>
+
+            <!-- Loading State -->
+            <StackPanel Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      Margin="0,40">
+                <ProgressBar Style="{StaticResource LoadingSpinnerStyle}" />
+                <TextBlock Text="{Binding StatusMessage}"
+                         Margin="0,16,0,0"
+                         HorizontalAlignment="Center"
+                         FontSize="14" />
+            </StackPanel>
+
+            <!-- Error State -->
+            <materialDesign:Card Visibility="{Binding HasError, Converter={StaticResource BooleanToVisibilityConverter}}"
+                               Background="{StaticResource ErrorBrush}"
+                               Foreground="White"
+                               Margin="0,16">
+                <StackPanel Orientation="Horizontal" Margin="16">
+                    <materialDesign:PackIcon Kind="AlertCircle" Width="24" Height="24" Margin="0,0,12,0" />
+                    <StackPanel>
+                        <TextBlock Text="Error" FontWeight="Medium" />
+                        <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" />
+                        <Button Content="Try Again" 
+                              Style="{StaticResource MaterialDesignOutlinedButton}"
+                              Foreground="White"
+                              BorderBrush="White"
+                              Command="{Binding ClearErrorCommand}"
+                              Margin="0,8,0,0" />
+                    </StackPanel>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <!-- No Data State -->
+            <materialDesign:Card Visibility="{Binding HasWeatherData, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Invert}"
+                               Opacity="0.6"
+                               Margin="0,40">
+                <StackPanel HorizontalAlignment="Center" Margin="40">
+                    <materialDesign:PackIcon Kind="WeatherPartlyCloudy" Width="64" Height="64" Margin="0,0,0,16" />
+                    <TextBlock Text="Enter a city name to get weather information"
+                             FontSize="16"
+                             HorizontalAlignment="Center"
+                             TextAlignment="Center" />
+                    <TextBlock Text="Try searching for your city or select from popular cities above"
+                             FontSize="12"
+                             Opacity="0.7"
+                             HorizontalAlignment="Center"
+                             TextAlignment="Center"
+                             Margin="0,8,0,0" />
+                </StackPanel>
+            </materialDesign:Card>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
