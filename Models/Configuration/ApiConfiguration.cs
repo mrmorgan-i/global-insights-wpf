@@ -30,7 +30,7 @@ public class WeatherApiConfig
 {
     public string ApiKey { get; set; } = string.Empty;
     public string BaseUrl { get; set; } = "https://api.openweathermap.org/data/2.5";
-    public string Units { get; set; } = "metric"; // metric, imperial, kelvin
+    public string Units { get; set; } = "imperial"; // metric, imperial, kelvin
 }
 
 public class NewsApiConfig
