@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Global_Insights_Dashboard.Models.DTOs;
@@ -15,6 +16,7 @@ public partial class NewsViewModel : BaseViewModel
     private readonly INewsService _newsService;
     private readonly ICacheService _cacheService;
     private readonly IConfigurationService _configurationService;
+    private readonly IExportService _exportService;
 
     [ObservableProperty]
     private ObservableCollection<NewsArticle> _articles = new();
@@ -33,6 +35,11 @@ public partial class NewsViewModel : BaseViewModel
 
     [ObservableProperty]
     private DateTime _lastUpdated = DateTime.MinValue;
+
+    /// <summary>
+    /// Whether export is available (articles have been fetched)
+    /// </summary>
+    public bool CanExport => HasArticles && Articles.Any();
 
     public override string ServiceName => "News";
 
@@ -71,11 +78,13 @@ public partial class NewsViewModel : BaseViewModel
     public NewsViewModel(
         INewsService newsService,
         ICacheService cacheService,
-        IConfigurationService configurationService)
+        IConfigurationService configurationService,
+        IExportService exportService)
     {
         _newsService = newsService;
         _cacheService = cacheService;
         _configurationService = configurationService;
+        _exportService = exportService;
     }
 
     protected override async Task OnInitializeAsync()
@@ -275,5 +284,62 @@ public partial class NewsViewModel : BaseViewModel
         {
             _ = LoadNewsAsync();
         }
+    }
+
+    /// <summary>
+    /// Export news data to CSV
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanExport))]
+    private async Task ExportData()
+    {
+        try
+        {
+            var defaultFileName = $"NewsData_{SelectedCountry}_{SelectedCategory}_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            
+            var filePath = _exportService.ShowSaveFileDialog(defaultFileName);
+            if (string.IsNullOrEmpty(filePath))
+                return; // User cancelled
+            
+            ShowLoading("Exporting news data...");
+            
+            // Create a NewsResponse object with current articles
+            var newsResponse = new NewsResponse
+            {
+                Status = "ok",
+                TotalResults = Articles.Count,
+                Articles = Articles.ToList()
+            };
+            
+            var success = await _exportService.ExportNewsDataAsync(newsResponse, filePath);
+            
+            if (success)
+            {
+                StatusMessage = $"News data exported successfully to {Path.GetFileName(filePath)}";
+            }
+            else
+            {
+                HandleError("Failed to export news data. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            HandleError("Export failed", ex);
+        }
+        finally
+        {
+            HideLoading();
+        }
+    }
+
+    partial void OnArticlesChanged(ObservableCollection<NewsArticle> value)
+    {
+        OnPropertyChanged(nameof(CanExport));
+        ExportDataCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnHasArticlesChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanExport));
+        ExportDataCommand.NotifyCanExecuteChanged();
     }
 }

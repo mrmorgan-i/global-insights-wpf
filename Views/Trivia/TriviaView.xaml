@@ -219,6 +219,13 @@
                               Content="Start New Quiz"
                               FontSize="16" Padding="32,16"
                               Margin="0,16,0,0" MinWidth="180" Height="50" />
+                        
+                        <!-- Export Results Button -->
+                        <Button Command="{Binding ExportDataCommand}"
+                              Style="{StaticResource MaterialDesignOutlinedButton}"
+                              Content="Export Results"
+                              FontSize="16" Padding="32,16"
+                              Margin="0,8,0,0" MinWidth="180" Height="50" />
                     </StackPanel>
                 </materialDesign:Card>
 

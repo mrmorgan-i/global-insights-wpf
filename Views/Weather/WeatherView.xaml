@@ -79,6 +79,35 @@
                         </Button>
                     </Grid>
 
+                    <!-- Action Buttons -->
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Spacer -->
+                        <Border Grid.Column="0" />
+
+                        <!-- Refresh Button -->
+                        <Button Grid.Column="1" 
+                                Command="{Binding RefreshCommand}"
+                                Style="{StaticResource MaterialDesignIconButton}"
+                                ToolTip="Refresh weather data"
+                                Margin="0,0,8,0">
+                            <materialDesign:PackIcon Kind="Refresh" />
+                        </Button>
+                        
+                        <!-- Export Button -->
+                        <Button Grid.Column="2" 
+                                Command="{Binding ExportDataCommand}"
+                                Style="{StaticResource MaterialDesignIconButton}"
+                                ToolTip="Export weather data to CSV">
+                            <materialDesign:PackIcon Kind="FileExport" />
+                        </Button>
+                    </Grid>
+
                     <!-- Popular Cities -->
                     <TextBlock Text="Popular Cities:" Margin="0,0,0,8" FontWeight="Medium" />
                     <ItemsControl ItemsSource="{Binding PopularCities}">

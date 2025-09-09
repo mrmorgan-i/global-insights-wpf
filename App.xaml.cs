@@ -89,6 +89,7 @@ namespace Global_Insights_Dashboard
             services.AddSingleton<ICacheService, CacheService>();
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddSingleton<IThemeService, ThemeService>();
+            services.AddSingleton<IExportService, ExportService>();
 
             // ViewModels
             services.AddTransient<MainViewModel>();

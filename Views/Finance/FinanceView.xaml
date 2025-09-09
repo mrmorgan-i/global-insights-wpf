@@ -82,13 +82,34 @@
                           Margin="0,0,8,0"
                           IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
 
-                    <Button Grid.Column="2"
-                          Command="{Binding AddToFavoritesCommand}"
-                          Style="{StaticResource MaterialDesignIconButton}"
-                          ToolTip="Add to favorites"
-                          Width="40" Height="40">
-                        <materialDesign:PackIcon Kind="Heart" />
-                    </Button>
+                    <!-- Action Buttons -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <!-- Add to Favorites Button -->
+                        <Button Command="{Binding AddToFavoritesCommand}"
+                              Style="{StaticResource MaterialDesignIconButton}"
+                              ToolTip="Add to favorites"
+                              Width="40" Height="40"
+                              Margin="0,0,8,0">
+                            <materialDesign:PackIcon Kind="Heart" />
+                        </Button>
+                        
+                        <!-- Refresh Button -->
+                        <Button Command="{Binding RefreshCommand}"
+                              Style="{StaticResource MaterialDesignIconButton}"
+                              ToolTip="Refresh data"
+                              Width="40" Height="40"
+                              Margin="0,0,8,0">
+                            <materialDesign:PackIcon Kind="Refresh" />
+                        </Button>
+                        
+                        <!-- Export Button -->
+                        <Button Command="{Binding ExportDataCommand}"
+                              Style="{StaticResource MaterialDesignIconButton}"
+                              ToolTip="Export financial data to CSV"
+                              Width="40" Height="40">
+                            <materialDesign:PackIcon Kind="FileExport" />
+                        </Button>
+                    </StackPanel>
                 </Grid>
 
                 <!-- Popular Stocks -->

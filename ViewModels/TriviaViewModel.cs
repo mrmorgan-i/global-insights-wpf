@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Global_Insights_Dashboard.Models.DTOs;
@@ -16,10 +17,11 @@ public partial class TriviaViewModel : BaseViewModel
     private readonly ITriviaService _triviaService;
     private readonly ICacheService _cacheService;
     private readonly IConfigurationService _configurationService;
+    private readonly IExportService _exportService;
 
     private TriviaResponse? _currentTriviaSet;
     private int _currentQuestionIndex = 0;
-    private List<string> _userAnswers = new();
+    private readonly List<TriviaUserAnswer> _userAnswers = new();
     private DateTime _quizStartTime;
 
     [ObservableProperty]
@@ -79,6 +81,11 @@ public partial class TriviaViewModel : BaseViewModel
     [ObservableProperty]
     private string _correctAnswerText = string.Empty;
 
+    /// <summary>
+    /// Whether export is available (quiz has been completed)
+    /// </summary>
+    public bool CanExport => IsQuizComplete && _userAnswers.Any();
+
     public override string ServiceName => "Trivia";
 
     // Computed property for score percentage
@@ -130,11 +137,13 @@ public partial class TriviaViewModel : BaseViewModel
     public TriviaViewModel(
         ITriviaService triviaService,
         ICacheService cacheService,
-        IConfigurationService configurationService)
+        IConfigurationService configurationService,
+        IExportService exportService)
     {
         _triviaService = triviaService;
         _cacheService = cacheService;
         _configurationService = configurationService;
+        _exportService = exportService;
     }
 
     protected override Task OnInitializeAsync()
@@ -195,7 +204,7 @@ public partial class TriviaViewModel : BaseViewModel
                 if (_currentTriviaSet?.Results?.Any() == true)
                 {
                     _currentQuestionIndex = 0;
-                    _userAnswers = new List<string>();
+                    _userAnswers.Clear();
                     _quizStartTime = DateTime.Now;
                     
                     TotalQuestions = _currentTriviaSet.Results.Count;
@@ -234,10 +243,20 @@ public partial class TriviaViewModel : BaseViewModel
         if (string.IsNullOrEmpty(SelectedAnswer) || _currentTriviaSet?.Results == null || CurrentQuestion == null)
             return;
 
-        _userAnswers.Add(SelectedAnswer);
+        // Create user answer record
+        var userAnswer = new TriviaUserAnswer
+        {
+            Question = CurrentQuestion.Question,
+            CorrectAnswer = CurrentQuestion.CorrectAnswer,
+            UserAnswer = SelectedAnswer,
+            IsCorrect = string.Equals(CurrentQuestion.CorrectAnswer, SelectedAnswer, StringComparison.OrdinalIgnoreCase),
+            AnsweredAt = DateTime.Now
+        };
+        
+        _userAnswers.Add(userAnswer);
 
         // Check if answer is correct (both answers are already decoded)
-        IsAnswerCorrect = string.Equals(CurrentQuestion.CorrectAnswer, SelectedAnswer, StringComparison.OrdinalIgnoreCase);
+        IsAnswerCorrect = userAnswer.IsCorrect;
         
         if (IsAnswerCorrect)
         {
@@ -405,4 +424,48 @@ public partial class TriviaViewModel : BaseViewModel
     }
 
     public bool CanSubmitAnswer => !string.IsNullOrEmpty(SelectedAnswer) && IsQuizActive;
+
+    /// <summary>
+    /// Export trivia quiz results to CSV
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanExport))]
+    private async Task ExportData()
+    {
+        try
+        {
+            var defaultFileName = $"TriviaResults_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            
+            var filePath = _exportService.ShowSaveFileDialog(defaultFileName);
+            if (string.IsNullOrEmpty(filePath))
+                return; // User cancelled
+            
+            ShowLoading("Exporting trivia results...");
+            
+            var questions = _currentTriviaSet?.Results;
+            var success = await _exportService.ExportTriviaDataAsync(questions, _userAnswers, filePath);
+            
+            if (success)
+            {
+                StatusMessage = $"Trivia results exported successfully to {Path.GetFileName(filePath)}";
+            }
+            else
+            {
+                HandleError("Failed to export trivia results. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            HandleError("Export failed", ex);
+        }
+        finally
+        {
+            HideLoading();
+        }
+    }
+
+    partial void OnIsQuizCompleteChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanExport));
+        ExportDataCommand.NotifyCanExecuteChanged();
+    }
 }

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Global_Insights_Dashboard.Models.DTOs;
@@ -15,6 +16,7 @@ public partial class WeatherViewModel : BaseViewModel
     private readonly IWeatherService _weatherService;
     private readonly ICacheService _cacheService;
     private readonly IConfigurationService _configurationService;
+    private readonly IExportService _exportService;
 
     [ObservableProperty]
     private string _cityInput = string.Empty;
@@ -37,16 +39,23 @@ public partial class WeatherViewModel : BaseViewModel
     [ObservableProperty]
     private string _searchPlaceholder = "Enter city name (e.g., London, New York)";
 
+    /// <summary>
+    /// Whether export is available (data has been fetched)
+    /// </summary>
+    public bool CanExport => HasWeatherData && (CurrentWeather != null || Forecast != null);
+
     public override string ServiceName => "Weather";
 
     public WeatherViewModel(
         IWeatherService weatherService,
         ICacheService cacheService,
-        IConfigurationService configurationService)
+        IConfigurationService configurationService,
+        IExportService exportService)
     {
         _weatherService = weatherService;
         _cacheService = cacheService;
         _configurationService = configurationService;
+        _exportService = exportService;
     }
 
     protected override async Task OnInitializeAsync()
@@ -249,6 +258,62 @@ public partial class WeatherViewModel : BaseViewModel
         "Toronto, CA",
         "Berlin, DE"
     };
+
+    /// <summary>
+    /// Export weather data to CSV
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanExport))]
+    private async Task ExportData()
+    {
+        try
+        {
+            var cityName = CurrentWeather?.Name ?? CityInput;
+            var defaultFileName = $"WeatherData_{cityName}_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            
+            var filePath = _exportService.ShowSaveFileDialog(defaultFileName);
+            if (string.IsNullOrEmpty(filePath))
+                return; // User cancelled
+            
+            ShowLoading("Exporting weather data...");
+            
+            var success = await _exportService.ExportWeatherDataAsync(CurrentWeather, Forecast, filePath);
+            
+            if (success)
+            {
+                StatusMessage = $"Weather data exported successfully to {Path.GetFileName(filePath)}";
+            }
+            else
+            {
+                HandleError("Failed to export weather data. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            HandleError("Export failed", ex);
+        }
+        finally
+        {
+            HideLoading();
+        }
+    }
+
+    partial void OnCurrentWeatherChanged(CurrentWeatherResponse? value)
+    {
+        OnPropertyChanged(nameof(CanExport));
+        ExportDataCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnForecastChanged(WeatherForecastResponse? value)
+    {
+        OnPropertyChanged(nameof(CanExport));
+        ExportDataCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnHasWeatherDataChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanExport));
+        ExportDataCommand.NotifyCanExecuteChanged();
+    }
 
     protected override void Dispose(bool disposing)
     {

@@ -97,14 +97,25 @@
                             Style="{StaticResource MaterialDesignFilledComboBox}"
                             Margin="0,0,12,0" />
 
-                    <!-- Refresh Button -->
-                    <Button Grid.Column="2"
-                          Command="{Binding RefreshNewsCommand}"
-                          Style="{StaticResource MaterialDesignIconButton}"
-                          ToolTip="Refresh news"
-                          Width="40" Height="40">
-                        <materialDesign:PackIcon Kind="Refresh" />
-                    </Button>
+                    <!-- Action Buttons -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <!-- Refresh Button -->
+                        <Button Command="{Binding RefreshNewsCommand}"
+                              Style="{StaticResource MaterialDesignIconButton}"
+                              ToolTip="Refresh news"
+                              Width="40" Height="40"
+                              Margin="0,0,8,0">
+                            <materialDesign:PackIcon Kind="Refresh" />
+                        </Button>
+                        
+                        <!-- Export Button -->
+                        <Button Command="{Binding ExportDataCommand}"
+                              Style="{StaticResource MaterialDesignIconButton}"
+                              ToolTip="Export news to CSV"
+                              Width="40" Height="40">
+                            <materialDesign:PackIcon Kind="FileExport" />
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Grid>
         </materialDesign:Card>

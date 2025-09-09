@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Global_Insights_Dashboard.Models.DTOs;
@@ -20,6 +21,7 @@ public partial class FinanceViewModel : BaseViewModel
     private readonly IFinanceService _financeService;
     private readonly ICacheService _cacheService;
     private readonly IConfigurationService _configurationService;
+    private readonly IExportService _exportService;
 
     [ObservableProperty]
     private string _symbolInput = string.Empty;
@@ -48,6 +50,11 @@ public partial class FinanceViewModel : BaseViewModel
     [ObservableProperty]
     private bool _showChart = false;
 
+    /// <summary>
+    /// Whether export is available (quote data has been fetched)
+    /// </summary>
+    public bool CanExport => HasQuoteData && CurrentQuote != null;
+
     public override string ServiceName => "Finance";
 
     // Popular stock symbols
@@ -68,11 +75,13 @@ public partial class FinanceViewModel : BaseViewModel
     public FinanceViewModel(
         IFinanceService financeService,
         ICacheService cacheService,
-        IConfigurationService configurationService)
+        IConfigurationService configurationService,
+        IExportService exportService)
     {
         _financeService = financeService;
         _cacheService = cacheService;
         _configurationService = configurationService;
+        _exportService = exportService;
 
         // Initialize chart axes
         InitializeChart();
@@ -330,6 +339,56 @@ public partial class FinanceViewModel : BaseViewModel
             Console.WriteLine($"[FinanceViewModel] Failed to update chart: {ex.Message}");
             ShowChart = false;
         }
+    }
+
+    /// <summary>
+    /// Export finance data to CSV
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanExport))]
+    private async Task ExportData()
+    {
+        try
+        {
+            var symbol = CurrentQuote?.Quote?.Symbol ?? SymbolInput;
+            var defaultFileName = $"FinanceData_{symbol}_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            
+            var filePath = _exportService.ShowSaveFileDialog(defaultFileName);
+            if (string.IsNullOrEmpty(filePath))
+                return; // User cancelled
+            
+            ShowLoading("Exporting finance data...");
+            
+            var success = await _exportService.ExportFinanceDataAsync(CurrentQuote, null, filePath);
+            
+            if (success)
+            {
+                StatusMessage = $"Finance data exported successfully to {Path.GetFileName(filePath)}";
+            }
+            else
+            {
+                HandleError("Failed to export finance data. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            HandleError("Export failed", ex);
+        }
+        finally
+        {
+            HideLoading();
+        }
+    }
+
+    partial void OnCurrentQuoteChanged(StockQuoteResponse? value)
+    {
+        OnPropertyChanged(nameof(CanExport));
+        ExportDataCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnHasQuoteDataChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanExport));
+        ExportDataCommand.NotifyCanExecuteChanged();
     }
 
     private void InitializeChart()
